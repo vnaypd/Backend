@@ -1,0 +1,138 @@
+app.get("/api/products/:State", async (req, res) => {
+  try {
+    const State = req.params.State;
+    const products = await getAllProducts();
+    const sanitizedProducts = sanitizeData(products.Items);
+    const filteredProducts = sanitizedProducts.filter(product => product.State === State);
+    res.json(filteredProducts);
+  } catch (error) {
+    console.error("Error fetching or sanitizing data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+function calculateProductionPerCrop(products, crop) {
+  const productionPerCrop = {};
+  products.forEach(product => {
+    if (product.Crop === crop) {
+      if (!productionPerCrop[product.Crop]) {
+        productionPerCrop[product.Crop] = [];
+      }
+      productionPerCrop[product.Crop].push({
+        year: product.Year,
+        state: product.State,
+        district: product.District,
+        production: product.Production
+      });
+    }
+  });
+  return productionPerCrop;
+}
+
+function calculateProductionPerYear(products, year) {
+  const productionPerYear = {};
+  products.forEach(product => {
+    if (product.Year === year) {
+      if (!productionPerYear[product.Year]) {
+        productionPerYear[product.Year] = [];
+      }
+      productionPerYear[product.Year].push({
+        crop: product.Crop,
+        state: product.State,
+        district: product.District,
+        production: product.Production
+      });
+    }
+  });
+  return productionPerYear;
+}
+
+app.get("/api/production/tonnes-per-crop", async (req, res) => {
+  try {
+    const crop = req.query.crop;
+    if (!crop) {
+      return res.status(400).json({ error: "Crop parameter is required" });
+    }
+    const products = await getAllProducts();
+    const sanitizedProducts = sanitizeData(products.Items);
+    const productionPerCrop = calculateProductionPerCrop(sanitizedProducts, crop);
+    res.json(productionPerCrop);
+  } catch (error) {
+    console.error("Error fetching or sanitizing data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/production/tonnes-per-year", async (req, res) => {
+  try {
+    const year = req.query.year;
+    if (!year) {
+      return res.status(400).json({ error: "Year parameter is required" });
+    }
+    const products = await getAllProducts();
+    const sanitizedProducts = sanitizeData(products.Items);
+    const productionPerYear = calculateProductionPerYear(sanitizedProducts, year);
+    res.json(productionPerYear);
+  } catch (error) {
+    console.error("Error fetching or sanitizing data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+// app.get("/api/products/:State", async (req, res) => {
+//   try {
+//     const State = req.params.State;
+//     const products = await getAllProducts();
+//     const sanitizedProducts = sanitizeData(products);
+
+    
+//     const filteredProducts = sanitizedProducts.filter(
+//       (product) => product.State === State
+//     );
+
+    
+//     const totalProductionPerYear = {};
+//     const productionPerCrop = {};
+
+//     filteredProducts.forEach((product) => {
+//       const year = product.Year;
+//       const production = product.Production;
+//       const crop = product.Crop;
+
+     
+//       if (totalProductionPerYear[year]) {
+//         totalProductionPerYear[year] += production;
+//       } else {
+//         totalProductionPerYear[year] = production;
+//       }
+
+      
+//       if (productionPerCrop[crop]) {
+//         productionPerCrop[crop] += production;
+//       } else {
+//         productionPerCrop[crop] = production;
+//       }
+//     });
+
+//     Object.keys(totalProductionPerYear).forEach((year) => {
+//       totalProductionPerYear[year] = parseFloat(
+//         totalProductionPerYear[year].toFixed(2)
+//       );
+//     });
+
+//     Object.keys(productionPerCrop).forEach((crop) => {
+//       productionPerCrop[crop] = parseFloat(productionPerCrop[crop].toFixed(2));
+//     });
+
+    
+//     res.json({
+//       state: State,
+//       totalProductionPerYear: totalProductionPerYear,
+//       productionPerCrop: productionPerCrop,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching or sanitizing data:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
