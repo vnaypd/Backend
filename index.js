@@ -7,6 +7,7 @@ app.use(cors());
 const getAllProducts = require("./getallData");
 const sanitizeData = require("./sanitizeData");
 
+
 app.get("/api/products", async (req, res) => {
   try {
     const { state, page, sortColumn, sortOrder } = req.query;
