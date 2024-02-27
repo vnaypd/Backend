@@ -1,41 +1,34 @@
 const getAllProducts = require("./getallData");
 
 function sanitizeData(data) {
-  // yha pr array of obj
-  // console.log(data)
   if (!Array.isArray(data)) {
     throw new Error("Input data is not an array.");
   }
 
   for (let entry of data) {
-    //bhaiya object chahaie yha
-
     if (!entry.Yield) {
-      entry.Yield = "0";
+      entry.Yield = 0;
     }
     if (!entry.Production) {
-      entry.Production = "0";
+      entry.Production = 0;
     }
     if (!entry.Area) {
-      entry.Area = "0";
+      entry.Area = 0;
     }
 
     if (!entry.Crop) {
       entry.Crop = "N/A";
     }
 
-    entry.Area = entry.Area ? parseFloat(entry.Area).toFixed(2) : "0";
-    entry.Production = entry.Production
-      ? parseFloat(entry.Production).toFixed(2)
-      : "0";
-    entry.Yield = entry.Yield ? parseFloat(entry.Yield).toFixed(2) : "0";
+    entry.Area = entry.Area ? parseInt(entry.Area) : 0;
+    entry.Production = entry.Production ? parseInt(entry.Production) : 0;
+    entry.Yield = entry.Yield ? parseInt(entry.Yield) : 0;
 
     function capitalizeFirstLetter(string) {
-        // console.log(string)
-        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+      return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     } 
 
-    entry.District = capitalizeFirstLetter(entry.District)
+    entry.District = capitalizeFirstLetter(entry.District);
 
     const productionUnit = entry["Production Units"].toLowerCase();
     if (productionUnit !== "tonnes") {
@@ -73,6 +66,7 @@ function sanitizeData(data) {
   try {
     const allProducts = await getAllProducts();
     const sanitizedData = sanitizeData(allProducts);
+    console.log(sanitizedData); // Output the sanitized data
   } catch (error) {
     console.error("Error:", error);
   }

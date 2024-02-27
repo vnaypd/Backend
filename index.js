@@ -23,10 +23,10 @@ app.get("/api/products", async (req, res) => {
         let aValue = a[sortColumn];
         let bValue = b[sortColumn];
 
-        // Convert to numbers if sorting by numerical columns
-        if (["Yield", "Production", "Area", "Year"].includes(sortColumn)) {
-          aValue = parseFloat(aValue);
-          bValue = parseFloat(bValue);
+        // Convert to integers if sorting by numerical columns
+        if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
+          aValue = parseInt(aValue);
+          bValue = parseInt(bValue);
         }
 
         if (aValue < bValue) {
@@ -46,7 +46,7 @@ app.get("/api/products", async (req, res) => {
     products.forEach((product) => {
       const year = product.Year;
       const crop = product.Crop;
-      const production = product.Production;
+      const production = parseInt(product.Production);
 
       // Production per year
       if (stateProduction[year]) {
