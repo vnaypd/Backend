@@ -17,12 +17,10 @@ app.get("/api/products", async (req, res) => {
       products = products.filter((product) => product.State === state);
     }
 
-
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
         let aValue = a[sortColumn];
         let bValue = b[sortColumn];
-
 
         if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
           aValue = parseInt(aValue);
@@ -47,13 +45,11 @@ app.get("/api/products", async (req, res) => {
       const crop = product.Crop;
       const production = parseInt(product.Production);
 
-
       if (stateProduction[year]) {
         stateProduction[year] += production;
       } else {
         stateProduction[year] = production;
       }
-
 
       if (cropProduction[crop]) {
         cropProduction[crop] += production;
@@ -62,14 +58,11 @@ app.get("/api/products", async (req, res) => {
       }
     });
 
-
     const allStates = [...new Set(products.map((product) => product.State))];
-
 
     const pageSize = 50;
     const totalProducts = products.length;
     const totalPages = Math.ceil(totalProducts / pageSize);
-
 
     let startIndex, endIndex;
     if (page) {
@@ -79,8 +72,7 @@ app.get("/api/products", async (req, res) => {
     }
 
     const sanitizedProducts = sanitizeData(products);
-    
-
+  
     const metadata = {
       totalProducts,
       totalPages,
