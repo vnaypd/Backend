@@ -66,7 +66,7 @@ function sanitizeData(data) {
   try {
     const allProducts = await getAllProducts();
     const sanitizedData = sanitizeData(allProducts);
-    console.log(sanitizedData); // Output the sanitized data
+    console.log(sanitizedData); 
   } catch (error) {
     console.error("Error:", error);
   }

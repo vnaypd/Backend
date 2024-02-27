@@ -12,18 +12,17 @@ app.get("/api/products", async (req, res) => {
     const { state, page, sortColumn, sortOrder } = req.query;
     let products = await getAllProducts();
 
-    // If state parameter is provided, filter the data
     if (state && state !== "All") {
       products = products.filter((product) => product.State === state);
     }
 
-    // Sorting
+
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
         let aValue = a[sortColumn];
         let bValue = b[sortColumn];
 
-        // Convert to integers if sorting by numerical columns
+
         if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
           aValue = parseInt(aValue);
           bValue = parseInt(bValue);
@@ -39,7 +38,6 @@ app.get("/api/products", async (req, res) => {
       });
     }
 
-    // Calculate production per year and production per crop
     const stateProduction = {};
     const cropProduction = {};
 
@@ -48,14 +46,14 @@ app.get("/api/products", async (req, res) => {
       const crop = product.Crop;
       const production = parseInt(product.Production);
 
-      // Production per year
+
       if (stateProduction[year]) {
         stateProduction[year] += production;
       } else {
         stateProduction[year] = production;
       }
 
-      // Production per crop
+
       if (cropProduction[crop]) {
         cropProduction[crop] += production;
       } else {
@@ -63,15 +61,15 @@ app.get("/api/products", async (req, res) => {
       }
     });
 
-    // Get unique states
+
     const allStates = [...new Set(products.map((product) => product.State))];
 
-    // Calculate pagination metadata
+
     const pageSize = 50;
     const totalProducts = products.length;
     const totalPages = Math.ceil(totalProducts / pageSize);
 
-    // If page parameter is provided, paginate the data
+
     let startIndex, endIndex;
     if (page) {
       startIndex = (page - 1) * pageSize;
@@ -81,7 +79,7 @@ app.get("/api/products", async (req, res) => {
 
     const sanitizedProducts = sanitizeData(products);
     
-    // Prepare metadata for response
+
     const metadata = {
       totalProducts,
       totalPages,
