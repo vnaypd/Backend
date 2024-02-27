@@ -23,8 +23,8 @@ app.get("/api/products", async (req, res) => {
         let bValue = b[sortColumn];
 
         if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
-          aValue = parseInt(aValue);
-          bValue = parseInt(bValue);
+          aValue = parseFloat(aValue);
+          bValue = parseFloat(bValue);
         }
 
         if (aValue < bValue) {
@@ -43,7 +43,7 @@ app.get("/api/products", async (req, res) => {
     products.forEach((product) => {
       const year = product.Year;
       const crop = product.Crop;
-      const production = parseInt(product.Production);
+      const production = parseFloat(product.Production);
 
       if (stateProduction[year]) {
         stateProduction[year] += production;

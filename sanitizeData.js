@@ -20,9 +20,9 @@ function sanitizeData(data) {
       entry.Crop = "N/A";
     }
 
-    entry.Area = entry.Area ? parseInt(entry.Area) : 0;
-    entry.Production = entry.Production ? parseInt(entry.Production) : 0;
-    entry.Yield = entry.Yield ? parseInt(entry.Yield) : 0;
+    entry.Area = entry.Area ? parseFloat(entry.Area) : 0;
+    entry.Production = entry.Production ? parseFloat(entry.Production) : 0;
+    entry.Yield = entry.Yield ? parseFloat(entry.Yield) : 0;
 
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
