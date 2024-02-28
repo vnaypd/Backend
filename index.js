@@ -9,11 +9,15 @@ const sanitizeData = require("./sanitizeData");
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, page, sortColumn, sortOrder } = req.query;
+    const { state, year, page, sortColumn, sortOrder } = req.query;
     let products = await getAllProducts();
 
     if (state && state !== "All") {
       products = products.filter((product) => product.State === state);
+    }
+
+    if (year && year !== "All") {
+      products = products.filter((product) => product.Year === year);
     }
 
     if (sortColumn && sortOrder) {
@@ -58,6 +62,7 @@ app.get("/api/products", async (req, res) => {
     });
 
     const allStates = [...new Set(products.map((product) => product.State))];
+    const allYears = [...new Set(products.map((product) => product.Year))];
 
     const pageSize = 50;
     const totalProducts = products.length;
@@ -71,14 +76,21 @@ app.get("/api/products", async (req, res) => {
     }
 
     const sanitizedProducts = sanitizeData(products);
-  
+
     const metadata = {
       totalProducts,
       totalPages,
-      currentPage: page ? parseInt(page) : 1
+      currentPage: page ? parseInt(page) : 1,
     };
-    
-    res.json({ products: sanitizedProducts, metadata, stateProduction, cropProduction, allStates });
+
+    res.json({
+      products: sanitizedProducts,
+      metadata,
+      stateProduction,
+      cropProduction,
+      allStates,
+      allYears,
+    });
   } catch (error) {
     console.error("Error fetching or sanitizing data:", error);
     res.status(500).json({ error: "Internal Server Error" });
