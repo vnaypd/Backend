@@ -42,21 +42,6 @@ function sanitizeData(data) {
       }
       entry["Production Units"] = "tonnes";
     }
-
-    entry.Production_Units = entry["Production Units"];
-    delete entry["Production Units"];
-
-    entry.Area_Units = entry["Area Units"];
-    delete entry["Area Units"];
-
-    entry.District = entry.District.replace(/[^a-zA-Z ]/g, "");
-    entry.State = entry.State.replace(/[^a-zA-Z ]/g, "");
-
-    if (!/\d{4}-\d{2}/.test(entry.Year)) {
-      const yearParts = entry.Year.split("-");
-      entry.Year =
-        yearParts[0] + "-" + (parseInt(yearParts[0]) + 1).toString().slice(-2);
-    }
   }
 
   return data;
@@ -66,7 +51,7 @@ function sanitizeData(data) {
   try {
     const allProducts = await getAllProducts();
     const sanitizedData = sanitizeData(allProducts);
-    console.log(sanitizedData); 
+    // console.log(sanitizedData); 
   } catch (error) {
     console.error("Error:", error);
   }
