@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-
 const cors = require("cors");
 app.use(cors());
 
@@ -12,85 +11,44 @@ app.get("/api/products", async (req, res) => {
     const { state, year, page, sortColumn, sortOrder } = req.query;
     let products = await getAllProducts();
 
-    if (state && state !== "All") {
-      products = products.filter((product) => product.State === state);
-    }
-
-    if (year && year !== "All") {
-      products = products.filter((product) => product.Year === year);
-    }
+    ["State", "Year"].forEach(param => {
+      if (req.query[param] && req.query[param] !== "All") {
+        products = products.filter(product => product[param] === req.query[param]);
+      }
+    });
 
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
-        let aValue = a[sortColumn];
-        let bValue = b[sortColumn];
-
-        if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
-          aValue = parseFloat(aValue);
-          bValue = parseFloat(bValue);
+        let [aValue, bValue] = [a[sortColumn], b[sortColumn]];
+        if (["Production", "Yield", "Area"].includes(sortColumn)) {
+          [aValue, bValue] = [parseFloat(aValue), parseFloat(bValue)];
         }
-
-        if (aValue < bValue) {
-          return sortOrder === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortOrder === "asc" ? 1 : -1;
-        }
-        return 0;
+        return (aValue < bValue ? -1 : aValue > bValue ? 1 : 0) * (sortOrder === "asc" ? 1 : -1);
       });
     }
 
-    const stateProduction = {};
-    const cropProduction = {};
-
-    products.forEach((product) => {
-      const year = product.Year;
-      const crop = product.Crop;
-      const production = parseFloat(product.Production);
-
-      if (stateProduction[year]) {
-        stateProduction[year] += production;
-      } else {
-        stateProduction[year] = production;
-      }
-
-      if (cropProduction[crop]) {
-        cropProduction[crop] += production;
-      } else {
-        cropProduction[crop] = production;
-      }
+    const [stateProduction, cropProduction] = [{}, {}];
+    products.forEach(({ Year, Crop, Production }) => {
+      const production = parseFloat(Production);
+      stateProduction[Year] = (stateProduction[Year] || 0) + production;
+      cropProduction[Crop] = (cropProduction[Crop] || 0) + production;
     });
 
-    const allStates = [...new Set(products.map((product) => product.State))];
-    const allYears = [...new Set(products.map((product) => product.Year))];
+    const [allStates, allYears, stateCrops] = [
+      [...new Set(products.map(product => product.State))],
+      [...new Set(products.map(product => product.Year))],
+      state && state !== "All" ? [...new Set(products.filter(product => product.State === state).map(product => product.Crop))] : []
+    ];
 
-    const pageSize = 50;
-    const totalProducts = products.length;
+    const [pageSize, totalProducts] = [50, products.length];
     const totalPages = Math.ceil(totalProducts / pageSize);
 
-    let startIndex, endIndex;
-    if (page) {
-      startIndex = (page - 1) * pageSize;
-      endIndex = Math.min(startIndex + pageSize, totalProducts);
-      products = products.slice(startIndex, endIndex);
-    }
+    if (page) products = products.slice((page - 1) * pageSize, Math.min(page * pageSize, totalProducts));
 
     const sanitizedProducts = sanitizeData(products);
+    const metadata = { totalProducts, totalPages, currentPage: page ? parseInt(page) : 1 };
 
-    const metadata = {
-      totalProducts,
-      totalPages,
-      currentPage: page ? parseInt(page) : 1,
-    };
-
-    res.json({
-      products: sanitizedProducts,
-      metadata,
-      stateProduction,
-      cropProduction,
-      allStates,
-      allYears,
-    });
+    res.json({ products: sanitizedProducts, metadata, stateProduction, cropProduction, allStates, allYears, stateCrops });
   } catch (error) {
     console.error("Error fetching or sanitizing data:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -98,6 +56,4 @@ app.get("/api/products", async (req, res) => {
 });
 
 const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
