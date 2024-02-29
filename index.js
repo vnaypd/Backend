@@ -8,19 +8,21 @@ const sanitizeData = require("./sanitizeData");
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, year, page, sortColumn, sortOrder } = req.query;
+    const { state, year, page, pageSize, sortColumn, sortOrder } = req.query;
     let products = await getAllProducts();
 
-    ["State", "Year"].forEach(param => {
-      if (req.query[param] && req.query[param] !== "All") {
-        products = products.filter(product => product[param] === req.query[param]);
-      }
-    });
+    if (state && state !== "All") {
+      products = products.filter((product) => product.State === state);
+    }
+
+    if (year && year !== "All") {
+      products = products.filter((product) => product.Year === year);
+    }
 
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
         let [aValue, bValue] = [a[sortColumn], b[sortColumn]];
-        if (["Production", "Yield", "Area"].includes(sortColumn)) {
+        if (["Year", "Production", "Yield", "Area"].includes(sortColumn)) {
           [aValue, bValue] = [parseFloat(aValue), parseFloat(bValue)];
         }
         return (aValue < bValue ? -1 : aValue > bValue ? 1 : 0) * (sortOrder === "asc" ? 1 : -1);
@@ -40,10 +42,10 @@ app.get("/api/products", async (req, res) => {
       state && state !== "All" ? [...new Set(products.filter(product => product.State === state).map(product => product.Crop))] : []
     ];
 
-    const [pageSize, totalProducts] = [50, products.length];
-    const totalPages = Math.ceil(totalProducts / pageSize);
+    const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
+    const totalPages = Math.ceil(totalProducts / pageSizeNum);
 
-    if (page) products = products.slice((page - 1) * pageSize, Math.min(page * pageSize, totalProducts));
+    if (page) products = products.slice((page - 1) * pageSizeNum, Math.min(page * pageSizeNum, totalProducts));
 
     const sanitizedProducts = sanitizeData(products);
     const metadata = { totalProducts, totalPages, currentPage: page ? parseInt(page) : 1 };
