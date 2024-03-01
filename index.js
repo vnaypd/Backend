@@ -8,7 +8,7 @@ const sanitizeData = require("./sanitizeData");
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, year, page, pageSize, sortColumn, sortOrder } = req.query;
+    const { state, year, page, pageSize, sortColumn, sortOrder ,crop} = req.query;
     let products = await getAllProducts();
 
     if (state && state !== "All") {
@@ -17,6 +17,10 @@ app.get("/api/products", async (req, res) => {
 
     if (year && year !== "All") {
       products = products.filter((product) => product.Year === year);
+    }
+
+    if (crop && crop !== "All") {
+      products = products.filter((product) => product.Crop === crop);
     }
 
     if (sortColumn && sortOrder) {
@@ -39,7 +43,8 @@ app.get("/api/products", async (req, res) => {
     const [allStates, allYears, stateCrops] = [
       [...new Set(products.map(product => product.State))],
       [...new Set(products.map(product => product.Year))],
-      state && state !== "All" ? [...new Set(products.filter(product => product.State === state).map(product => product.Crop))] : []
+      [...new Set(products.map(product => product.Crop))]
+      // state && state !== "All" ? [...new Set(products.filter(product => product.State === state).map(product => product.Crop))] : []
     ];
 
     const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
