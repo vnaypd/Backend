@@ -1,6 +1,6 @@
 const { ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const documentClient = require("./dynamodbClient");
-const TableName = "agriculture_india";
+const TableName = "cropyeardata";
 
 async function getAllProducts() {
   let item_count = 0;

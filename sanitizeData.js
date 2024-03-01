@@ -8,10 +8,8 @@ function sanitizeData(data) {
     entry.Production = entry.Production ? parseFloat(entry.Production) : 0;
     entry.Area = entry.Area ? parseFloat(entry.Area) : 0;
     entry.Crop = entry.Crop || "N/A";
-    entry.District =
-      entry.District.charAt(0).toUpperCase() +
-      entry.District.slice(1).toLowerCase();
-    const productionUnit = entry["Production Units"].toLowerCase();
+
+    const productionUnit = entry["Production Units"]
     if (productionUnit !== "tonnes") {
       switch (productionUnit) {
         case "nuts":
