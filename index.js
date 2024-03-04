@@ -3,18 +3,23 @@ const app = express();
 const cors = require("cors");
 app.use(cors());
 
-const getAllProducts = require("./getallData");
 const sanitizeData = require("./sanitizeData");
+const queryProducts = require("./queryData"); // Import the DynamoDB query function
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, year, page, pageSize, sortColumn, sortOrder ,crop} = req.query;
-    let products = await getAllProducts();
+    const { state, year, page, pageSize, sortColumn, sortOrder, crop } = req.query;
+    let products;
 
+    // Query DynamoDB to get products based on the selected state
     if (state && state !== "All") {
-      products = products.filter((product) => product.State === state);
+      products = await queryProducts({ FilterExpression: "#s = :s", ExpressionAttributeNames: { "#s": "State" }, ExpressionAttributeValues: { ":s": state } });
+    } else {
+      // Query DynamoDB to get all products if no state is selected
+      products = await queryProducts({});
     }
 
+    // Filtering based on year, crop, etc.
     if (year && year !== "All") {
       products = products.filter((product) => product.Year === year);
     }
@@ -33,6 +38,7 @@ app.get("/api/products", async (req, res) => {
       });
     }
 
+    // Calculating production data
     const [stateProduction, cropProduction] = [{}, {}];
     products.forEach(({ Year, Crop, Production }) => {
       const production = parseFloat(Production);
@@ -40,21 +46,24 @@ app.get("/api/products", async (req, res) => {
       cropProduction[Crop] = (cropProduction[Crop] || 0) + production;
     });
 
+    // Extracting unique states, years, and crops
     const [allStates, allYears, stateCrops] = [
       [...new Set(products.map(product => product.State))],
       [...new Set(products.map(product => product.Year))],
       [...new Set(products.map(product => product.Crop))]
-      // state && state !== "All" ? [...new Set(products.filter(product => product.State === state).map(product => product.Crop))] : []
     ];
 
+    // Pagination
     const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
     const totalPages = Math.ceil(totalProducts / pageSizeNum);
 
     if (page) products = products.slice((page - 1) * pageSizeNum, Math.min(page * pageSizeNum, totalProducts));
 
+    // Sanitize data
     const sanitizedProducts = sanitizeData(products);
     const metadata = { totalProducts, totalPages, currentPage: page ? parseInt(page) : 1 };
 
+    // Sending response
     res.json({ products: sanitizedProducts, metadata, stateProduction, cropProduction, allStates, allYears, stateCrops });
   } catch (error) {
     console.error("Error fetching or sanitizing data:", error);

@@ -2,33 +2,34 @@ const { ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const documentClient = require("./dynamodbClient");
 const TableName = "cropyeardata";
 
-async function getAllProducts() {
+async function queryProducts(query = {}) {
   let item_count = 0;
   let allItems = [];
   try {
     let response;
     let params = {
       TableName: TableName,
+      ...query
     };
 
     do {
       response = await documentClient.send(new ScanCommand(params));
-      item_count += response.Items.length;
 
-      response.Items.forEach((item) => {
-        allItems.push(item);
-      });
+      if (response.Items) {
+        item_count += response.Items.length;
+
+        response.Items.forEach((item) => {
+          allItems.push(item);
+        });
+       
+      }
 
       if (response.LastEvaluatedKey) {
         params.ExclusiveStartKey = response.LastEvaluatedKey;
-        console.log(
-          `Fetched ${response.Items.length} items. Total items so far: ${item_count}`
-        );
       }
     } while (response.LastEvaluatedKey);
 
     console.log("Total number of items found:", item_count);
-    // console.log(allItems)
     return allItems;
   } catch (error) {
     console.error("Error scanning DynamoDB table:", error);
@@ -36,4 +37,4 @@ async function getAllProducts() {
   }
 }
 
-module.exports = getAllProducts;
+module.exports = queryProducts;

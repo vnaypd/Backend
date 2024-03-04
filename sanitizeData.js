@@ -1,12 +1,10 @@
-const getAllProducts = require("./getallData");
+const queryProducts = require("./queryData");
+
 function sanitizeData(data) {
   if (!Array.isArray(data)) {
     throw new Error("Input data is not an array.");
   }
   for (let entry of data) {
-    entry.Yield = entry.Yield ? parseFloat(entry.Yield) : 0;
-    entry.Production = entry.Production ? parseFloat(entry.Production) : 0;
-    entry.Area = entry.Area ? parseFloat(entry.Area) : 0;
     entry.Crop = entry.Crop || "N/A";
 
     const productionUnit = entry["Production Units"]
@@ -26,7 +24,7 @@ function sanitizeData(data) {
 }
 (async () => {
   try {
-    const sanitizedData = sanitizeData(await getAllProducts());
+    const sanitizedData = sanitizeData(await queryProducts());
   } catch (error) {
     console.error("Error:", error);
   }

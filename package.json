@@ -13,6 +13,8 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.525.0",
     "@aws-sdk/lib-dynamodb": "^3.515.0",
+    "@aws-sdk/util-dynamodb": "^3.525.0",
+    "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1560.0",
     "cors": "^2.8.5",
     "cuid": "^3.0.0",
