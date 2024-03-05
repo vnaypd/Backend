@@ -6,6 +6,10 @@ function sanitizeData(data) {
   }
   for (let entry of data) {
     entry.Crop = entry.Crop || "N/A";
+    entry.District =
+    entry.District.charAt(0).toUpperCase() +
+    entry.District.slice(1).toLowerCase();
+ 
 
     const productionUnit = entry["Production Units"]
     if (productionUnit !== "tonnes") {
