@@ -8,31 +8,52 @@ const queryProducts = require("./queryData"); // Import the DynamoDB query funct
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, year, page, pageSize, sortColumn, sortOrder, crop } =
-      req.query;
+    const { state, year, page, pageSize, sortColumn, sortOrder, crop } = req.query;
     let products;
 
     // Query DynamoDB to get products based on the selected state
     if (state && state !== "All") {
-      products = await queryProducts({
-        FilterExpression: "#s = :s",
-        ExpressionAttributeNames: { "#s": "State" },
-        ExpressionAttributeValues: { ":s": state },
-      });
+      // Modify the query based on whether year and crop are selected
+      if (year && year !== "All") {
+        if (crop && crop !== "All") {
+          products = await queryProducts({
+            FilterExpression: "#s = :s and begins_with(#y, :y) and begins_with(#c, :c)",
+            ExpressionAttributeNames: { "#s": "State", "#y": "year_sort_id", "#c": "crop_sort_id" },
+            ExpressionAttributeValues: { ":s": state, ":y": year, ":c": crop },
+          });
+        } else {
+          products = await queryProducts({
+            FilterExpression: "#s = :s and begins_with(#y, :y)",
+            ExpressionAttributeNames: { "#s": "State", "#y": "year_sort_id" },
+            ExpressionAttributeValues: { ":s": state, ":y": year },
+          });
+        }
+      } else {
+        if (crop && crop !== "All") {
+          products = await queryProducts({
+            FilterExpression: "#s = :s and begins_with(#c, :c)",
+            ExpressionAttributeNames: { "#s": "State", "#c": "crop_sort_id" },
+            ExpressionAttributeValues: { ":s": state, ":c": crop },
+          });
+        } else {
+          products = await queryProducts({
+            FilterExpression: "#s = :s",
+            ExpressionAttributeNames: { "#s": "State" },
+            ExpressionAttributeValues: { ":s": state },
+          });
+        }
+      }
     } else {
       // Query DynamoDB to get all products if no state is selected
       products = await queryProducts({});
     }
 
-    // Filtering based on year, crop, etc.
+    // Filtering based on year
     if (year && year !== "All") {
       products = products.filter((product) => product.Year === year);
     }
 
-    if (crop && crop !== "All") {
-      products = products.filter((product) => product.Crop === crop);
-    }
-
+    // Sorting
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
         let [aValue, bValue] = [a[sortColumn], b[sortColumn]];
@@ -46,7 +67,7 @@ app.get("/api/products", async (req, res) => {
       });
     }
 
-    // Calculating production data
+    // Calculating production data, extracting unique states, years, and crops, pagination, sanitizing data
     const [stateProduction, cropProduction] = [{}, {}];
     products.forEach(({ Year, Crop, Production }) => {
       const production = parseFloat(Production);
@@ -54,14 +75,12 @@ app.get("/api/products", async (req, res) => {
       cropProduction[Crop] = (cropProduction[Crop] || 0) + production;
     });
 
-    // Extracting unique states, years, and crops
     const [allStates, allYears, stateCrops] = [
       [...new Set(products.map((product) => product.State))],
       [...new Set(products.map((product) => product.Year))],
       [...new Set(products.map((product) => product.Crop))],
     ];
 
-    // Pagination
     const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
     const totalPages = Math.ceil(totalProducts / pageSizeNum);
 
@@ -71,7 +90,6 @@ app.get("/api/products", async (req, res) => {
         Math.min(page * pageSizeNum, totalProducts)
       );
 
-    // Sanitize data
     const sanitizedProducts = sanitizeData(products);
     const metadata = {
       totalProducts,
@@ -79,7 +97,6 @@ app.get("/api/products", async (req, res) => {
       currentPage: page ? parseInt(page) : 1,
     };
 
-    // Sending response
     res.json({
       products: sanitizedProducts,
       metadata,
@@ -94,6 +111,7 @@ app.get("/api/products", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
