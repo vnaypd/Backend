@@ -24,7 +24,7 @@ function sanitizeData(data) {
 }
 (async () => {
   try {
-    const sanitizedData = sanitizeData(await queryProducts());
+    sanitizeData(await queryProducts());
   } catch (error) {
     console.error("Error:", error);
   }
