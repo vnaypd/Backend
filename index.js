@@ -48,11 +48,6 @@ app.get("/api/products", async (req, res) => {
       products = await queryProducts({});
     }
 
-    // Filtering based on year
-    if (year && year !== "All") {
-      products = products.filter((product) => product.Year === year);
-    }
-
     // Sorting
     if (sortColumn && sortOrder) {
       products.sort((a, b) => {
