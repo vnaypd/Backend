@@ -45,7 +45,8 @@ app.get("/api/products", async (req, res) => {
       }
     } else {
       // Query DynamoDB to get all products if no state is selected
-      products = await queryProducts({});
+      // products = await queryProducts({});
+      // window.alert(" Select a State lol!")
     }
 
     // Sorting
