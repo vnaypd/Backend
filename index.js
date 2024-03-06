@@ -71,9 +71,9 @@ app.get("/api/products", async (req, res) => {
     });
 
     const [allStates, allYears, stateCrops] = [
-      [...new Set(products.map((product) => product.State))],
-      [...new Set(products.map((product) => product.Year))],
-      [...new Set(products.map((product) => product.Crop))],
+      [...new Set(products.map((product) => product.State))].sort(),
+      [...new Set(products.map((product) => product.Year))].sort(),
+      [...new Set(products.map((product) => product.Crop))].sort(),
     ];
 
     const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
