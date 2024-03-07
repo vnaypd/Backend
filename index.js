@@ -44,7 +44,7 @@ app.get("/api/products", async (req, res) => {
         }
       }
     } else {
-      console.log("")
+      console.log(" ")
     }
 
     // Sorting
