@@ -8,7 +8,8 @@ const queryProducts = require("./queryData"); // Import the DynamoDB query funct
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { state, year, page, pageSize, sortColumn, sortOrder, crop } = req.query;
+    const { state, year, page, pageSize, sortColumn, sortOrder, crop } =
+      req.query;
     let products;
 
     // Query DynamoDB to get products based on the selected state
@@ -17,13 +18,19 @@ app.get("/api/products", async (req, res) => {
       if (year && year !== "All") {
         if (crop && crop !== "All") {
           products = await queryProducts({
-            FilterExpression: "#s = :s and begins_with(#y, :y) and begins_with(#c, :c)",
-            ExpressionAttributeNames: { "#s": "State", "#y": "year_sort_id", "#c": "crop_sort_id" },
+            KeyConditionExpression: "#s = :s AND begins_with(#c, :c)",
+            FilterExpression: "begins_with(#y, :y)",
+            ExpressionAttributeNames: {
+              "#s": "State",
+              "#y": "year_sort_id",
+              "#c": "crop_sort_id",
+            },
             ExpressionAttributeValues: { ":s": state, ":y": year, ":c": crop },
           });
         } else {
           products = await queryProducts({
-            FilterExpression: "#s = :s and begins_with(#y, :y)",
+            IndexName: "State-year_sort_id-index",
+            KeyConditionExpression: "#s = :s AND begins_with(#y, :y)",
             ExpressionAttributeNames: { "#s": "State", "#y": "year_sort_id" },
             ExpressionAttributeValues: { ":s": state, ":y": year },
           });
@@ -31,20 +38,20 @@ app.get("/api/products", async (req, res) => {
       } else {
         if (crop && crop !== "All") {
           products = await queryProducts({
-            FilterExpression: "#s = :s and begins_with(#c, :c)",
+            KeyConditionExpression: "#s = :s AND begins_with(#c , :c)",
             ExpressionAttributeNames: { "#s": "State", "#c": "crop_sort_id" },
             ExpressionAttributeValues: { ":s": state, ":c": crop },
           });
         } else {
           products = await queryProducts({
-            FilterExpression: "#s = :s",
+            KeyConditionExpression: "#s = :s",
             ExpressionAttributeNames: { "#s": "State" },
             ExpressionAttributeValues: { ":s": state },
           });
         }
       }
     } else {
-      console.log(" ")
+      console.log(" ");
     }
 
     // Sorting
@@ -69,12 +76,6 @@ app.get("/api/products", async (req, res) => {
       cropProduction[Crop] = (cropProduction[Crop] || 0) + production;
     });
 
-    const [allStates, allYears, stateCrops] = [
-      [...new Set(products.map((product) => product.State))].sort(),
-      [...new Set(products.map((product) => product.Year))].sort(),
-      [...new Set(products.map((product) => product.Crop))].sort(),
-    ];
-
     const [pageSizeNum, totalProducts] = [parseInt(pageSize), products.length];
     const totalPages = Math.ceil(totalProducts / pageSizeNum);
 
@@ -92,20 +93,16 @@ app.get("/api/products", async (req, res) => {
     };
 
     res.json({
-      products: sanitizedProducts,
+      products,
       metadata,
       stateProduction,
       cropProduction,
-      allStates,
-      allYears,
-      stateCrops,
     });
   } catch (error) {
     console.error("Error fetching or sanitizing data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

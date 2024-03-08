@@ -1,5 +1,3 @@
-const queryProducts = require("./queryData");
-
 function sanitizeData(data) {
   if (!Array.isArray(data)) {
     throw new Error("Input data is not an array.");
@@ -7,11 +5,10 @@ function sanitizeData(data) {
   for (let entry of data) {
     entry.Crop = entry.Crop || "N/A";
     entry.District =
-    entry.District.charAt(0).toUpperCase() +
-    entry.District.slice(1).toLowerCase();
- 
+      entry.District.charAt(0).toUpperCase() +
+      entry.District.slice(1).toLowerCase();
 
-    const productionUnit = entry["Production Units"]
+    const productionUnit = entry["Production Units"];
     if (productionUnit !== "tonnes") {
       switch (productionUnit) {
         case "nuts":
@@ -26,11 +23,5 @@ function sanitizeData(data) {
   }
   return data;
 }
-(async () => {
-  try {
-    sanitizeData(await queryProducts());
-  } catch (error) {
-    console.error("Error:", error);
-  }
-})();
+
 module.exports = sanitizeData;

@@ -1,5 +1,14 @@
-const { ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const documentClient = require("./dynamodbClient");
+const AWS = require("aws-sdk");
+
+AWS.config.update({
+  region: "ap-south-1",
+  credentials: {
+    accessKeyId: "AKIA57F2A3LJ5X6JUBX5",
+    secretAccessKey: "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",
+  },
+});
+
+const documentClient = new AWS.DynamoDB.DocumentClient();
 const TableName = "cropyeardata";
 
 async function queryProducts(query = {}) {
@@ -9,11 +18,11 @@ async function queryProducts(query = {}) {
     let response;
     let params = {
       TableName: TableName,
-      ...query
+      ...query,
     };
 
     do {
-      response = await documentClient.send(new ScanCommand(params));
+      response = await documentClient.query(params).promise();
 
       if (response.Items) {
         item_count += response.Items.length;
@@ -21,7 +30,6 @@ async function queryProducts(query = {}) {
         response.Items.forEach((item) => {
           allItems.push(item);
         });
-       
       }
 
       if (response.LastEvaluatedKey) {
