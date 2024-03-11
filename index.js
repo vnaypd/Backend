@@ -1,8 +1,11 @@
 const express = require("express");
 const app = express();
+const { config } = require("dotenv");
 const cors = require("cors");
 app.use(cors());
-
+config({
+  path: "./config/config.env",
+});
 const sanitizeData = require("./sanitizeData");
 const queryProducts = require("./queryData"); // Import the DynamoDB query function
 

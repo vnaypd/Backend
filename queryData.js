@@ -1,10 +1,11 @@
 const AWS = require("aws-sdk");
 
+// Update AWS configuration with environment variables
 AWS.config.update({
   region: "ap-south-1",
   credentials: {
-    accessKeyId: "AKIA57F2A3LJ5X6JUBX5",
-    secretAccessKey: "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",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
